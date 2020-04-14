@@ -1,14 +1,11 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-  
-
-suggestion_queue = []
 
 
 # Builds and sends email from suggestion_queue to notification recipient
 # Returns true if successful and false otherwise
-def send_notification():
+def send_suggestions(suggestions, email, password, recipient):
     # package up email based on contents from queue and send
     message = "Message_you_need_to_send"
 
@@ -31,16 +28,3 @@ def send_notification():
     suggestion_queue.clear()
     
     return True
-
-
-
-# Adds a question with the corresponding set of suggested answers to the suggestion queue
-def enqueue_suggestion(question, answers, link):
-    suggestion_queue.append({
-        "question": question,
-        "answers": answer,
-        "link": link
-    })
-
-
-send_notification()
