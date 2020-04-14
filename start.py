@@ -4,7 +4,8 @@ from piazza_qa.piazza import main
 
 configuration_settings = {
     'Account Settings': ['username', 'password', 'course_link'],
-    'Runtime Settings': ['check_interval']
+    'Runtime Settings': ['check_interval'],
+    'Notification Settings': ['email', 'email_password', 'recipient_email', 'max_notification_rate']
 }
 
 # Check if configuration file exists
@@ -31,4 +32,4 @@ for section in configuration_settings:
             print('Configuration file \'config.ini\' is missing option \'%s\' from section \'%s\'.' % (option, section))
             exit()
 
-main()
+# main()
