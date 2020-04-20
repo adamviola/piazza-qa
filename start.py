@@ -1,6 +1,6 @@
 import time
 import os.path
-import utilities.piazza as p
+from utilities.piazza import PiazzaInterface
 import utilities.notifications as n
 import utilities.documents as d
 from piazza_api import Piazza
@@ -44,8 +44,7 @@ for section in configuration_settings:
 
 
 # Check for new documents
-d.check_documents()
-
+# d.check_documents()
 
 
 
