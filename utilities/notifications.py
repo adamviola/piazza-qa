@@ -2,29 +2,31 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+class Notifications:
 
-# Builds and sends email from suggestion_queue to notification recipient
-# Returns true if successful and false otherwise
-def send_suggestions(suggestions, email, password, recipient):
-    # package up email based on contents from queue and send
-    message = "Message_you_need_to_send"
+    def __init__(self, email, password, recipients, automatically_reply):
+        self.email = email
+        self.password = password
+        self.recipients = recipients
+        self.automatically_reply = automatically_reply
 
-    for suggestion in suggestion_queue:
-        message += str(suggestion)
-    
-    try:
-        s = smtplib.SMTP('smtp.gmail.com', 587) 
-        s.starttls() 
+    # Builds and sends email using suggestions 
+    def send_suggestions(suggestions):
+        message = "Message_you_need_to_send"
 
-        s.login("qapiazzabot@gmail.com", "") 
+        for suggestion in suggestion_queue:
+            message += str(suggestion)
         
-        s.sendmail("qapiazzabot@gmail.com", "qapiazzabot@gmail.com", message) 
-        
-        s.quit()
-    except:
-        print("Email notification failed...")
-        return False
+        try:
+            s = smtplib.SMTP('smtp.gmail.com', 587) 
+            s.starttls() 
 
-    suggestion_queue.clear()
-    
-    return True
+            s.login(email, password) 
+            
+            s.sendmail(email, recipients, message) 
+            
+            s.quit()
+        except:
+            return False
+
+        return True

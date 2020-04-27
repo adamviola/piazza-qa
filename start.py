@@ -1,20 +1,19 @@
 import time
 import os.path
+import subprocess
 from utilities.piazza import PiazzaInterface
-import utilities.notifications as n
-import utilities.documents as d
+from utilities.notifications import Notifications
+from utilities.parser import Parser
+from utilities.qa import QASystem
 from piazza_api import Piazza
 from configparser import ConfigParser, ParsingError
 
 # Configuration settings structure
 configuration_settings = {
-    'Account Settings': ['username', 'password', 'course_link'],
-    'Runtime Settings': ['check_interval'],
-    'Notification Settings': ['email', 'email_password', 'recipient_email', 'notification_interval']
+    'Account Settings': ['username', 'password', 'course_id'],
+    'Runtime Settings': ['check_interval', 'consider_followups', 'automatically_reply'],
+    'Notification Settings': ['send_notifications', 'email', 'email_password', 'recipients']
 }
-
-
-
 
 # Check if configuration file exists
 if (not os.path.exists('config.ini')):
@@ -40,39 +39,74 @@ for section in configuration_settings:
             print('Configuration file \'config.ini\' is missing option \'%s\' from section \'%s\'.' % (option, section))
             exit()
 
-
-
-
-# Check for new documents
-# d.check_documents()
-
-
-
-
 # Configuration data
 username = config['Account Settings']['username']
 password = config['Account Settings']['password']
+course_id = config['Account Settings']['course_id']
 
 check_interval = float(config['Runtime Settings']['check_interval'])
-notification_interval = float(config['Notification Settings']['notification_interval'])
+consider_followups = config['Runtime Settings'].getboolean('consider_followups')
+automatically_reply = config['Runtime Settings'].getboolean('automatically_reply')
 
+send_notifications = config['Runtime Settings'].getboolean('send_notiifcations')
 email = config['Notification Settings']['email']
 email_password = config['Notification Settings']['email_password']
+recipients = config['Notification Settings']['recipients'].split()
 
-recipient_email = config['Notification Settings']['recipient_email']
+# Initialize utility objects
+# p = PiazzaInterface(username, password, course_id)
+# n = Notifications(email, email_password, recipients, automatically_reply)
 
-last_notification_time = 0
-suggestion_queue = [1]
 
-while True:
+# Preprocess documents
+parser = Parser()
+parser.process_documents()
 
-    # Fetch new threads
+drqa_retriever_path = './model/DrQA/scripts/retriever/'
+data_path = './data/'
 
-    # If new threads exist, send them to qa system
+# # Builds database from documents
+# subprocess.run(['python', drqa_retriever_path + 'build_db.py', data_path + 'docs.json', data_path + 'docs.db'])
+# print('db complete')
 
-    # If Answers exist, append to suggestion_queue
+# # Builds tf-idf features
+# subprocess.run(['python', drqa_retriever_path + 'build_tfidf.py', data_path + 'docs.db', data_path])
+# print('tf-idf complete')
 
-    if len(suggestion_queue) > 0 and time.time() - last_notification_time > notification_interval:
-        print('send notification')
 
-    time.sleep(check_interval * 60)
+# qa = QASystem()
+
+# answers = qa.get_answers(['where are the SI sessions?'])
+
+# print('\n\nHERE WE GO')
+# if len(answers[0]) == 0:
+#     print('no answers')
+# else:
+#     for answer in answers[0]:
+#         print(answer.keys())
+#         print(answer)
+#         print('')
+
+
+
+# while True:
+
+#     # Fetch new threads
+#     questions = p.fetch_new_questions()
+
+#     # If new threads exist, send them to QA system
+#     if len(questions) > 0:
+#         answers = []
+
+#         # If answers exist, reply and/or notify
+#         if len(answers) > 0:
+#             if automatically_reply:
+#                 p.reply_to_questions(questions, answers)
+
+#             if send_notifications:
+#                 pass
+#                 #n.send
+        
+
+#     time.sleep(check_interval * 60)
+
