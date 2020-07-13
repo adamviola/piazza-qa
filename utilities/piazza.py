@@ -79,8 +79,6 @@ class PiazzaInterface:
         filtered_questions = []
         for q in questions:
             tokens = re.split(r'\W+', q[1].lower())
-            print(q[1])
-            print(tokens)
 
             matches = 0
             for token in tokens:

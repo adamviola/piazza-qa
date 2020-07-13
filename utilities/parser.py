@@ -47,8 +47,9 @@ def process_documents():
 
     # Read filenames and last modified timestamp of last processed documents
     processed_documents = None
-    with open(processed_documents_filepath, 'r') as f:
-        processed_documents = f.readlines()
+    if os.path.exists(processed_documents_filepath):
+        with open(processed_documents_filepath, 'r') as f:
+            processed_documents = f.readlines()
 
     # Read filenames and last modified timestamp of current documents
     documents = []
@@ -145,6 +146,9 @@ def process_documents():
     # Clear out temporary txt files
     for txt_name in glob.glob(processed_dir + "**/*.txt", recursive=True):
         os.remove(txt_name)
+
+    if len(documents) == 0:
+        raise Exception('No documents found')
 
     # Save filenames and last modified timestamps of processed documents
     with open(processed_documents_filepath, 'w') as f:

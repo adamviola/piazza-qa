@@ -50,7 +50,8 @@ if process_documents():
     logging.info('Documents have changed and have been converted to text.')
 
     # Builds database from documents
-    os.remove(data_path + 'docs.db')
+    if os.path.exists(data_path + 'docs.db'):
+        os.remove(data_path + 'docs.db')
     subprocess.run(['python', drqa_retriever_path + 'build_db.py', data_path + 'docs.json', data_path + 'docs.db'])
     logging.info('Database has been built from text.')
 
