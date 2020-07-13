@@ -1,3 +1,5 @@
+"""Client for the question-answering system and answerability classifier."""
+
 import drqa.tokenizers as dk
 import drqa.retriever as ret
 import drqa.reader as dr
@@ -15,9 +17,7 @@ docs_json_path = "./data/docs.json"  # json file containing all docs from prepro
 
 db_path = "./data/docs.db"  # db file from processing step
 
-
-results_csv_path = "./two_step/physics-logistic-question-results_two-step_normalize_question-only_no-question-answers.csv"  # output containing csv of top 5 potential answers to each question
-
+sort_by = 'doc_score'
 
 # answerability files
 model_name = "bert-base-uncased"
@@ -31,6 +31,7 @@ num_predictions = 5
 GROUP_LENGTH = 500  # character cutoff for a new paragraph
 
 class Model(pl.LightningModule):
+    """Answerability classifier."""
 
     def __init__(self):
         super(Model, self).__init__()
@@ -44,6 +45,7 @@ class Model(pl.LightningModule):
 
 
 class QASystem:
+    """Client for asking questions to the QA system"""
 
     def __init__(self):
         dk.set_default('corenlp_classpath', corenlp_path)
@@ -76,9 +78,7 @@ class QASystem:
 
 
     def __closest_docs(self, query, k=5):
-        """Closest docs by dot product between query and documents
-        in tfidf weighted word vector space.
-        """
+        """Closest docs by dot product between query and documents in tfidf weighted word vector space."""
 
         try:
             spvec = self.retriever.text2spvec(query)
@@ -149,16 +149,45 @@ class QASystem:
             "attention_mask": attention_mask,
             "token_type_ids": token_type_ids
         }
+    
+    def __sort_answers(self, answers, sort_by):
+        sorted_answers = []
+        for answer_set in answers:
+            order = np.argsort([answer[sort_by] for answer in answer_set])
+            sorted_answers.append([answer_set[i] for i in order[::-1]])
 
-
-
+        return sorted_answers
 
     def get_answers(self, questions):
+        """Fetches answers to a list of questions.
+        
+        Given a list of questions, this method fetches a list of possible answers
+        for each question using the question-answering system. Each question-answer
+        pair is evaluated by the answerability classifier.
+
+        Args:
+            questions: list of string questions.
+
+        Returns:
+            A list (corresponding to each question) of lists (corresponding to each
+            possible answer to each question) of dicts. Each dict takes the form:
+
+            {
+                'answer': string short answer ,
+                'context': string context to the answer,
+                'doc_name': string document name,
+                'doc_score': float DrQA reader document score,
+                'ans_score': float DrQA answer score,
+                'answerability': float answerability classifier score
+            }
+
+            The list of possible answers to each question is sorted by document score,
+            which is provided by DrQA reader.
+        """
         answers = []
         for question in questions:
+            question = question[1]
             doc_names, doc_scores = self.__closest_docs(question, k=10)
-
-
 
             doc_index = {}
             all_predictions = []
@@ -214,10 +243,7 @@ class QASystem:
             top_answers = []
             if len(all_predictions) > 0:
                 for i, p in enumerate(all_predictions, 1):
-                    rank = i
-                    ans = p[0]
                     doc_name = p[2]
-                    ans_score = p[1]
                     context = p[3]
 
                     preprocessed = self.__preprocess(self.tokenizer, {"question": question, "context": context})
@@ -233,20 +259,19 @@ class QASystem:
                     answerability_score = torch.nn.functional.softmax(logits[0][0], dim=0)[1]
 
                     doc_score = doc_index[doc_name]["score"]
-                    # table.add_row([rank, ans, doc_name, ans_score, doc_score, doc_date])
 
                     top_answers.append({
                         'answer': p[0],                             # Short answer
                         'context': p[3],                            # Answer context
-                        'doc_name': p[2],                           # Document name
-                        'doc_score': doc_index[doc_name]['score'],  # DrQA retrieval document score
+                        'doc_name': doc_name,                       # Document name
+                        'doc_score': doc_score,                     # DrQA retrieval document score
                         'ans_score': p[1],                          # DrQA answer score
                         'answerability': answerability_score        # Answerability classifier score   
                     })
 
             answers.append(top_answers)
 
-        return answers
+        return self.__sort_answers(answers, sort_by)
 
             
 

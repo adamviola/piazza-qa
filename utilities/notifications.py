@@ -2,31 +2,28 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-class Notifications:
+# Builds and sends email using suggestions 
+def send_email(email, password, recipients, qa_pairs, automatically_reply):
+    
+    if automatically_reply:
+        body = 'Hi,\n\nI automatically replied to the following logistics question(s):\n\n'
+    else:
+        body = 'Hi,\n\nI have answer suggestion(s) for the following logistics question(s):\n\n'
 
-    def __init__(self, email, password, recipients, automatically_reply):
-        self.email = email
-        self.password = password
-        self.recipients = recipients
-        self.automatically_reply = automatically_reply
+    for qa_pair in qa_pairs:
+        body += 'Question: ' + qa_pair['question'] + '\n'
+        body += 'Answer: ' + qa_pair['answer'] + '\n'
+        body += 'Context: ' + qa_pair['context'] + '\n\n'
 
-    # Builds and sends email using suggestions 
-    def send_suggestions(suggestions):
-        message = "Message_you_need_to_send"
+    body += 'Hope this helps,\nPiazza Bot'
+    
+    message = 'Subject: {}\n\n{}'.format('Piazza Logistics Questions', body)
+    
+    s = smtplib.SMTP('smtp.gmail.com', 587) 
+    s.starttls() 
 
-        for suggestion in suggestion_queue:
-            message += str(suggestion)
-        
-        try:
-            s = smtplib.SMTP('smtp.gmail.com', 587) 
-            s.starttls() 
+    s.login(email, password) 
 
-            s.login(email, password) 
-            
-            s.sendmail(email, recipients, message) 
-            
-            s.quit()
-        except:
-            return False
-
-        return True
+    s.sendmail(email, recipients, message) 
+    
+    s.quit()
