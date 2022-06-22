@@ -1,6 +1,6 @@
 PyMuPDF==1.16.17
 pytorch_lightning==0.7.3
-numpy==1.18.3
+numpy==1.22.0
 nltk==3.5
 elasticsearch==7.6.0
 pandas==1.0.3
